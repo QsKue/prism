@@ -3,8 +3,8 @@
 Source: `src/buffer.rs`
 
 The allocation-free scratch management every FFT-based DSP stage shares: a `BufferPool<T>` plus small
-real/complex copy/convert helpers. It was distilled out of reed, which now re-exports it as
-`reed::utils::buffer::*`. Nothing here knows about a specific algorithm — it is pure buffer/numeric
+real/complex copy/convert helpers. It was distilled out of pitchrack, which now re-exports it as
+`pitchrack::utils::buffer::*`. Nothing here knows about a specific algorithm — it is pure buffer/numeric
 plumbing.
 
 ## `BufferPool<T>`

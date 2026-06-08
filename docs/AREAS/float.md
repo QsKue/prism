@@ -3,8 +3,8 @@
 Source: `src/float.rs`
 
 A single trait, `Float`, that acts as a generic stand-in for `f32` or `f64` so every DSP crate in the
-workspace can be written once and used at either precision. It was distilled out of reed, which now
-re-exports it as `reed::float`.
+workspace can be written once and used at either precision. It was distilled out of pitchrack, which now
+re-exports it as `pitchrack::float`.
 
 ```rust
 pub trait Float: Display + Debug + NumFloatCore + FftNum {}

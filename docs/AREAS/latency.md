@@ -3,8 +3,8 @@
 Source: `src/latency.rs`
 
 The `Latency` value type — the shared, frames-based delay currency every pipeline stage in the audio
-system reports in, so maestro can sum the latency of analyzers, denoisers, time-stretchers, and
-processors into one end-to-end figure. maestro re-exports it as `AudioLatency`.
+system reports in, so MixRack can sum the latency of analyzers, denoisers, time-stretchers, and
+processors into one end-to-end figure. MixRack re-exports it as `AudioLatency`.
 
 ```rust
 pub struct Latency {

@@ -1,10 +1,10 @@
 [package]
-name = "prism"
+name = "sinerack"
 description = "Shared DSP core for the q-lib audio crates: primitives and common value types."
 version = "0.1.0"
 edition = "2024"
 license = "AGPL-3.0-or-later"
-repository = "https://github.com/QsKue/prism"
+repository = "https://github.com/QsKue/sinerack"
 readme = "README.md"
 
 [dependencies]

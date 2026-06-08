@@ -100,7 +100,7 @@ const REAL_BUFFER_COUNT: usize = 1;
 /// so there is no interior mutability and nothing to make the pool `!Send`.
 ///
 /// ```rust
-///  use prism::buffer::BufferPool;
+///  use sinerack::buffer::BufferPool;
 ///
 ///  let mut buffers = BufferPool::<f64>::new(3);
 ///  let (a, b) = buffers.complex_pair();

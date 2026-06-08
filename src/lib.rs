@@ -1,8 +1,8 @@
-//! `prism` — the shared DSP core for the q-lib audio crates.
+//! `sinerack` — the shared DSP core for the q-lib audio crates.
 //!
-//! prism is the base layer everything else stands on: the leaf DSP crates
-//! ([`reed`] pitch detection, `warble` time-stretching, `damper` denoising) and
-//! the `maestro` engine all depend on it. It holds the primitives and common
+//! sinerack is the base layer everything else stands on: the leaf DSP crates
+//! ([`pitchrack`] pitch detection, `phaserack` time-stretching, `noiserack` denoising) and
+//! the `mixrack` engine all depend on it. It holds the primitives and common
 //! value types that would otherwise be duplicated across them.
 //!
 //! It provides the shared [`Latency`] currency every pipeline stage reports in,
@@ -11,7 +11,7 @@
 //! FFT plans, windowing, framing) are distilled in here as the split progresses
 //! — see `docs/ROADMAP.md`.
 //!
-//! [`reed`]: https://github.com/QsKue/reed
+//! [`pitchrack`]: https://github.com/QsKue/pitchrack
 
 mod float;
 mod latency;

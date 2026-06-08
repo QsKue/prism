@@ -1,11 +1,11 @@
 # Architecture
 
-This document describes the structure of the `prism` crate. Keep it aligned with `AGENTS.md` and
+This document describes the structure of the `sinerack` crate. Keep it aligned with `AGENTS.md` and
 update it when the public API, module boundaries, or what's distilled-in change.
 
 ## Shape
 
-`prism` is the base layer of the q-lib audio workspace — the shared DSP core. It is a single, small
+`sinerack` is the base layer of the q-lib audio workspace — the shared DSP core. It is a single, small
 library crate with a flat module tree:
 
 ```text
@@ -15,23 +15,23 @@ lib.rs        crate root: module declarations + `Latency` / `Float` re-export
 └── buffer    BufferPool + real/complex copy/convert + square_sum
 ```
 
-prism holds **primitives** (`buffer`) and **shared value types** (`Latency`, `Float`) — the things
+SineRack holds **primitives** (`buffer`) and **shared value types** (`Latency`, `Float`) — the things
 that would otherwise be copied across the leaves. It has no engine, no async, no I/O, and no
 domain-specific concepts. Its only runtime dependency is `rustfft`.
 
 ## Role as the shared base
 
-The q-lib audio system is three layers, with prism at the bottom:
+The q-lib audio system is three layers, with SineRack at the bottom:
 
-- **prism (this crate)** — primitives + value types. Depends only on `rustfft`.
-- **reed / warble / damper (leaves)** — each owns its own domain trait (`PitchDetector` /
-  `TimeStretcher` / `Denoiser`) and depends on prism. Domain traits live in the leaves, **not** in
-  prism, so unrelated leaves don't get dragged into lockstep version bumps.
-- **maestro (engine)** — orchestrates the leaves; re-exports `prism::Latency as AudioLatency`. It is
-  the hub / main entry point for the audio system. See <https://github.com/QsKue/maestro>.
+- **SineRack (this crate)** — primitives + value types. Depends only on `rustfft`.
+- **pitchrack / phaserack / noiserack (leaves)** — each owns its own domain trait (`PitchDetector` /
+  `TimeStretcher` / `Denoiser`) and depends on SineRack. Domain traits live in the leaves, **not** in
+  SineRack, so unrelated leaves don't get dragged into lockstep version bumps.
+- **mixrack (engine)** — orchestrates the leaves; re-exports `sinerack::Latency as AudioLatency`. It is
+  the hub / main entry point for the audio system. See <https://github.com/QsKue/mixrack>.
 
-prism's `Float` and `buffer` were distilled out of reed; reed re-exports them (`reed::float` =
-`prism::Float`, `reed::utils::buffer::*` = `prism::buffer::*`), so existing call sites are unchanged.
+SineRack's `Float` and `buffer` were distilled out of pitchrack; pitchrack re-exports them (`pitchrack::float` =
+`sinerack::Float`, `pitchrack::utils::buffer::*` = `sinerack::buffer::*`), so existing call sites are unchanged.
 
 ## Public API
 
@@ -59,14 +59,14 @@ The public contract is intentionally tiny:
 
 ## Distilled-in now vs planned
 
-- **In prism today:** `Latency`, `Float`, `buffer` (`BufferPool` + copy/convert helpers +
+- **In SineRack today:** `Latency`, `Float`, `buffer` (`BufferPool` + copy/convert helpers +
   `square_sum`).
 - **Not yet (future distill targets):** cached FFT plans, windowing, and framing. These still live in
-  reed; they graduate here only when a second consumer needs them. See `docs/ROADMAP.md`.
+  pitchrack; they graduate here only when a second consumer needs them. See `docs/ROADMAP.md`.
 
 ## Testing & checks
 
-prism has no audio hardware and a tiny surface. `buffer` carries inline unit tests (`BufferPool`
+SineRack has no audio hardware and a tiny surface. `buffer` carries inline unit tests (`BufferPool`
 slice handout); the doc comment on `BufferPool` is a runnable doctest.
 
 ```bash

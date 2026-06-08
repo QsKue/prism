@@ -1,6 +1,6 @@
 # AGENTS.md
 
-`prism` is the small, shared **DSP core** of the q-lib audio workspace (edition 2024,
+`sinerack` is the small, shared **DSP core** of the q-lib audio workspace (edition 2024,
 `AGPL-3.0-or-later`). It is the base layer everything else stands on: it holds the DSP **primitives**
 and common **value types** that would otherwise be duplicated across the leaf crates. No binary, no
 async, no runtime, no I/O. Today it carries three things: `Latency` (the frames-based delay currency
@@ -8,20 +8,20 @@ every stage reports in), `Float` (the `f32`/`f64` numeric abstraction), and `buf
 scratch `BufferPool` + real/complex copy/convert helpers). Its only runtime dependency is `rustfft`.
 Keep changes minimal, generic, and allocation-conscious.
 
-**Consumer / workspace context.** prism sits at the bottom of the three-layer q-lib audio system: it
+**Consumer / workspace context.** SineRack sits at the bottom of the three-layer q-lib audio system: it
 has no dependencies of its own among the audio crates — it is depended *on*. The leaf DSP crates —
-[`reed`](https://github.com/QsKue/reed) (pitch detection), `warble` (time-stretching), and `damper`
-(denoising) — each own their domain trait and depend on prism for primitives. The
-[`maestro`](https://github.com/QsKue/maestro) engine orchestrates the leaves and is the **hub / main
-entry point** for the whole audio system; it re-exports `prism::Latency as AudioLatency`. prism's
-`Float` and `buffer` were just **distilled out of reed**, which now re-exports them
-(`reed::float` = `prism::Float`, `reed::utils::buffer::*` = `prism::buffer::*`). All crates are git
-submodules + path workspace members. prism must stay standalone-buildable and must not gain leaf or
+[`pitchrack`](https://github.com/QsKue/pitchrack) (pitch detection), `phaserack` (time-stretching), and `noiserack`
+(denoising) — each own their domain trait and depend on SineRack for primitives. The
+[`mixrack`](https://github.com/QsKue/mixrack) engine orchestrates the leaves and is the **hub / main
+entry point** for the whole audio system; it re-exports `sinerack::Latency as AudioLatency`. SineRack's
+`Float` and `buffer` were just **distilled out of pitchrack**, which now re-exports them
+(`pitchrack::float` = `sinerack::Float`, `pitchrack::utils::buffer::*` = `sinerack::buffer::*`). All crates are git
+submodules + path workspace members. SineRack must stay standalone-buildable and must not gain leaf or
 engine knowledge.
 
 ## Where to look
 
-- `docs/ARCHITECTURE.md` — module tree (latency / float / buffer), what each provides, prism's role
+- `docs/ARCHITECTURE.md` — module tree (latency / float / buffer), what each provides, SineRack's role
   as the shared base, the check commands, and what is distilled-in-now vs planned. Read before
   touching module boundaries or the public API.
 - `docs/AREAS/*.md` — per-module conventions and gotchas. Read the one for any file you change.
@@ -43,14 +43,14 @@ engine knowledge.
 
 ## Conventions (the durable rules)
 
-- **Primitives + value types only.** prism holds shared DSP machinery (`buffer`) and shared value
+- **Primitives + value types only.** SineRack holds shared DSP machinery (`buffer`) and shared value
   types (`Latency`, `Float`) — nothing domain-specific. **Domain traits stay in the leaves**
-  (`PitchDetector` in reed, `TimeStretcher` in warble, `Denoiser` in damper), never in prism, so an
+  (`PitchDetector` in pitchrack, `TimeStretcher` in phaserack, `Denoiser` in noiserack), never in SineRack, so an
   unrelated leaf crate is never dragged into a lockstep version bump. A common `Processor` super-trait
   may graduate here later *only if* real cross-leaf duplication appears — not speculatively.
 - **A primitive graduates here only when a 2nd consumer needs it.** Code is distilled *out of* a leaf
-  into prism when a second crate would otherwise copy it (this is how `Float`/`buffer` arrived from
-  reed). Don't add speculative primitives. Distilled code is re-exported from the origin leaf so its
+  into SineRack when a second crate would otherwise copy it (this is how `Float`/`buffer` arrived from
+  pitchrack). Don't add speculative primitives. Distilled code is re-exported from the origin leaf so its
   call sites don't churn.
 - **Stay generic over `Float`.** Public APIs take `T: Float`, never concrete `f32`/`f64`. Add extra
   bounds (e.g. `std::iter::Sum` on `square_sum`) only at the use site that needs them, never on the
@@ -60,15 +60,15 @@ engine knowledge.
   hot path — never `vec!` in a borrow. It owns its buffers outright (no `Rc`/`RefCell`), so it stays
   `Send`. This allocation-free, `Send` contract is the reason `buffer` lives here; preserve it.
 - **Stay small + standalone.** No I/O, threading, async, audio-device, or engine/leaf concepts. The
-  runtime dep surface is FFT only (`rustfft`, `default-features = false`). prism must build on its own.
+  runtime dep surface is FFT only (`rustfft`, `default-features = false`). SineRack must build on its own.
 
 ## Warning signs
 
-- A type or trait in prism mentions pitch, time-stretch, denoise, or any single leaf's domain.
-- A domain trait (`PitchDetector`, `TimeStretcher`, `Denoiser`) is moved into prism "to share it" —
+- A type or trait in SineRack mentions pitch, time-stretch, denoise, or any single leaf's domain.
+- A domain trait (`PitchDetector`, `TimeStretcher`, `Denoiser`) is moved into SineRack "to share it" —
   it belongs in its leaf unless a real `Processor` super-trait is being deliberately graduated.
 - A `BufferPool` method allocates in a borrow instead of handing out a pre-allocated slice.
-- A primitive is added to prism that only one crate uses (premature distillation).
+- A primitive is added to SineRack that only one crate uses (premature distillation).
 - A change makes `f32` work but silently breaks `f64` (or vice versa) — both must stay supported.
 
 ## Making a change
